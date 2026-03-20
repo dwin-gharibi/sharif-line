@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}سوالات متداول{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8 text-center">
+            <h1 class="display-4 fw-bold text-primary">سوالات متداول</h1>
+            <p class="lead text-muted">در این بخش به سوالات رایج و متداول شما پاسخ داده شده است. در صورت نیاز به کمک بیشتر، با ما تماس بگیرید.</p>
+        </div>
+    </div>
+
+    <div class="accordion" id="faqAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    چگونه می‌توانم یک نظرسنجی ایجاد کنم؟
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    برای ایجاد نظرسنجی، ابتدا وارد حساب کاربری خود شوید و سپس از بخش "ایجاد نظرسنجی" می‌توانید سوالات مختلف را به نظرسنجی اضافه کنید.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTwo">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                    چگونه می‌توانم نظرسنجی خود را به اشتراک بگذارم؟
+                </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    پس از ایجاد نظرسنجی، یک لینک اختصاصی برای شما ساخته می‌شود که می‌توانید آن را با دیگران به اشتراک بگذارید.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingThree">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                    آیا می‌توانم نتایج نظرسنجی را تحلیل کنم؟
+                </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    بله، سامانه ما به شما امکان می‌دهد که نتایج نظرسنجی خود را به صورت نمودار و جدول مشاهده کنید و تحلیل کنید.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
