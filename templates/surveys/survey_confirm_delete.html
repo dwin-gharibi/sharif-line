@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}حذف {{ survey.title }} | سامانه نظرسنجی{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-danger text-white">
+        <h3 class="mb-0">حذف نظرسنجی</h3>
+    </div>
+    <div class="card-body text-center py-5">
+        <i class="fas fa-exclamation-triangle fa-4x text-danger mb-4"></i>
+        <h4>آیا از حذف نظرسنجی "{{ survey.title }}" اطمینان دارید؟</h4>
+        <p class="text-muted mb-4">این عمل قابل بازگشت نیست و تمام سوالات و پاسخ‌های دریافت‌شده حذف خواهند شد.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'surveys:survey_detail' survey.slug %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-right me-2"></i>انصراف
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash-alt me-2"></i>حذف نظرسنجی
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 
