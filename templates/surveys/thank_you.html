@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}با تشکر از پاسخ شما | سامانه نظرسنجی{% endblock %}
+
+{% block extra_css %}
+<style>
+    .thank-you-container {
+        background: linear-gradient(135deg, #f5f7fa, #e9eef2);
+        border-radius: 15px;
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+        padding: 3rem;
+    }
+    
+    .thank-you-icon {
+        margin-bottom: 2rem;
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+    
+    .custom-message {
+        border-right: 4px solid #0d6efd;
+        background-color: rgba(255, 255, 255, 0.8);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="thank-you-container text-center">
+                <div class="thank-you-icon">
+                    <i class="fas fa-check-circle fa-5x text-success"></i>
+                </div>
+                <h2 class="mb-3 display-5 fw-bold">با تشکر از شرکت شما در نظرسنجی!</h2>
+                <p class="lead mb-4">پاسخ شما به نظرسنجی "{{ survey.title }}" با موفقیت ثبت شد.</p>
+                
+                {% if survey.custom_thank_you_message %}
+                <div class="mt-4 p-4 custom-message">
+                    {{ survey.custom_thank_you_message|safe }}
+                </div>
+                {% endif %}
+                
+                <div class="mt-5">
+                    <a href="{% url 'home' %}" class="btn btn-primary btn-lg px-4 py-2">
+                        <i class="fas fa-home me-2"></i>بازگشت به صفحه اصلی
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
