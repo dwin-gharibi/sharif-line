@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}درباره ما{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center text-center mb-5">
+        <div class="col-lg-8">
+            <h1 class="display-4 fw-bold text-primary">درباره سامانه نظرسنجی</h1>
+            <p class="lead text-muted">سامانه نظرسنجی به شما این امکان را می‌دهد که نظرسنجی‌های قدرتمند و حرفه‌ای ایجاد کرده و به سادگی نتایج آن‌ها را مشاهده و تحلیل کنید.</p>
+        </div>
+    </div>
+
+    <div class="row align-items-center">
+        <div class="col-lg-6 mb-5 mb-lg-0">
+            <h2 class="text-primary mb-3">ماموریت ما</h2>
+            <p class="lead text-muted">ما در تیم سامانه نظرسنجی، در تلاش هستیم تا یک ابزار قدرتمند، ساده و کاربرپسند برای ایجاد و اشتراک‌گذاری نظرسنجی‌ها طراحی کنیم. هدف ما این است که به شما کمک کنیم که نتایج واقعی و قابل اعتمادی از مخاطبان خود بگیرید.</p>
+            <p class="lead text-muted">ما معتقدیم که اطلاعات، قدرت است. و به همین دلیل، ابزارهایی برای تحلیل و تجزیه‌ی بهتر نتایج نظرسنجی‌ها ارائه می‌دهیم تا به شما در تصمیم‌گیری‌های آگاهانه کمک کنیم.</p>
+        </div>
+        <div class="col-lg-6">
+            {% load static %}
+            <img src="{% static 'img/team.jpg' %}" class="img-fluid rounded shadow-lg" alt="Our Team">
+        </div>
+    </div>
+</div>
+{% endblock %}
