@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}نظرسنجی‌های من | سامانه نظرسنجی{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">نظرسنجی‌های من</h1>
+    <a href="{% url 'surveys:survey_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-2"></i>ایجاد نظرسنجی جدید
+    </a>
+</div>
+
+{% if surveys %}
+<div class="row">
+    {% for survey in surveys %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header">
+                <span class="badge {% if survey.is_active %}bg-success{% else %}bg-danger{% endif %} float-end">
+                    {% if survey.is_active %}فعال{% else %}غیرفعال{% endif %}
+                </span>
+                <h5 class="card-title mb-0">{{ survey.title }}</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ survey.description|truncatechars:100 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        {{ survey.created_at|date:"Y/m/d" }}
+                    </small>
+                    <span class="badge bg-info">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        {{ survey.responses.count }} پاسخ
+                    </span>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="d-flex justify-content-between">
+                    {% if survey.slug %}
+                    <a href="{% url 'surveys:survey_detail' survey.slug %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i>مشاهده
+                    </a>
+                    <div class="btn-group">
+                        <a href="{% url 'surveys:survey_edit' survey.slug %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-edit me-1"></i>ویرایش
+                        </a>
+                        <a href="{{ survey.get_share_url }}" class="btn btn-sm btn-outline-success" target="_blank">
+                            <i class="fas fa-share-alt me-1"></i>لینک
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning mt-2 mb-2">
+                        <i class="bi bi-exclamation-triangle"></i> نظرسنجی ناقص است
+                    </div>
+                    <button onclick="deleteSurvey({{ survey.id }})" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash"></i> حذف نظرسنجی ناقص
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+        <h4>هنوز هیچ نظرسنجی ایجاد نکرده‌اید</h4>
+        <p class="text-muted">برای شروع، می‌توانید با کلیک بر روی دکمه زیر، اولین نظرسنجی خود را ایجاد کنید.</p>
+        <a href="{% url 'surveys:survey_create' %}" class="btn btn-primary mt-3">
+            <i class="fas fa-plus-circle me-2"></i>ایجاد اولین نظرسنجی
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function deleteSurvey(surveyId) {
+    if (confirm('آیا از حذف این نظرسنجی ناقص اطمینان دارید؟')) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch(`/surveys/${surveyId}/delete-incomplete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                response.json().then(data => {
+                    alert(`خطا: ${data.message || 'خطای نامشخص'}`);
+                }).catch(() => {
+                    alert('خطا در حذف نظرسنجی. لطفاً مجدداً تلاش کنید.');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+        });
+    }
+}
+</script>
+{% endblock %} 
