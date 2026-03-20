@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}پروفایل من | سامانه نظرسنجی{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center">
+                <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                <h3>{{ user.username }}</h3>
+                <p class="text-muted">{{ user.email }}</p>
+                <p>{{ user.profile.bio|default:"بیوگرافی وارد نشده است" }}</p>
+                <div class="d-grid gap-2 mt-3">
+                    <a href="{% url 'accounts:profile_update' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>ویرایش پروفایل
+                    </a>
+                    <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-key me-2"></i>تغییر رمز عبور
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">نظرسنجی‌های من</h5>
+                <a href="{% url 'surveys:survey_create' %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus-circle me-1"></i>نظرسنجی جدید
+                </a>
+            </div>
+            <div class="card-body">
+                {% if user.surveys.exists %}
+                <div class="list-group">
+                    {% for survey in user.surveys.all %}
+                    {% if survey.slug %}
+                    <a href="{% url 'surveys:survey_detail' survey.slug %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ survey.title }}</h5>
+                            <small>{{ survey.created_at|date:"Y/m/d" }}</small>
+                        </div>
+                        <p class="mb-1">{{ survey.description|truncatechars:100 }}</p>
+                        <small>
+                            <span class="badge {% if survey.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if survey.is_active %}فعال{% else %}غیرفعال{% endif %}
+                            </span>
+                            <span class="badge bg-info">{{ survey.responses.count }} پاسخ</span>
+                        </small>
+                    </a>
+                    {% else %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ survey.title }}</h5>
+                            <small>{{ survey.created_at|date:"Y/m/d" }}</small>
+                        </div>
+                        <p class="mb-1">{{ survey.description|truncatechars:100 }}</p>
+                        <div class="alert alert-warning mt-2 mb-2">
+                            <i class="fas fa-exclamation-triangle"></i> نظرسنجی ناقص است
+                        </div>
+                        <button onclick="deleteSurvey({{ survey.id }})" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i> حذف نظرسنجی ناقص
+                        </button>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted">هنوز هیچ نظرسنجی ایجاد نکرده‌اید</p>
+                    <a href="{% url 'surveys:survey_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-2"></i>ایجاد اولین نظرسنجی
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function deleteSurvey(surveyId) {
+    if (confirm('آیا از حذف این نظرسنجی ناقص اطمینان دارید؟')) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch(`/surveys/${surveyId}/delete-incomplete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                response.json().then(data => {
+                    alert(`خطا: ${data.message || 'خطای نامشخص'}`);
+                }).catch(() => {
+                    alert('خطا در حذف نظرسنجی. لطفاً مجدداً تلاش کنید.');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+        });
+    }
+}
+</script>
+{% endblock %}
