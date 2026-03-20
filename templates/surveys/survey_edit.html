@@ -1,0 +1,696 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}ویرایش سوالات {{ survey.title }} | سامانه نظرسنجی{% endblock %}
+
+{% block extra_css %}
+<style>
+.question-item {
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0 0.5rem 1rem;
+}
+.choice-item {
+    margin-left: 1.5rem;
+    padding: 0.25rem 0.5rem;
+    border-left: 2px solid #6c757d;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">ویرایش سوالات نظرسنجی</h2>
+    <div>
+        <a href="{% url 'surveys:survey_detail' survey.slug %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-2"></i>بازگشت به نظرسنجی
+        </a>
+        <a href="{% url 'surveys:survey_update' survey.slug %}" class="btn btn-outline-primary ms-2">
+            <i class="fas fa-cog me-2"></i>تنظیمات نظرسنجی
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4 mb-lg-0">
+        <div class="card shadow-sm sticky-lg-top" style="top: 1rem;">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i>افزودن سوال جدید
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="questionForm" method="post" action="{% url 'surveys:question_create' survey.slug %}">
+                    {% csrf_token %}
+                    {{ question_form|crispy }}
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i>افزودن سوال
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>لیست سوالات
+                    </h5>
+                    <span class="badge bg-primary">{{ questions.count }} سوال</span>
+                </div>
+            </div>
+            <div class="card-body" id="questions-container">
+                {% if questions %}
+                <p class="mb-3 text-muted"><i class="fas fa-info-circle me-1"></i> می‌توانید با کشیدن و رها کردن، ترتیب سوالات را تغییر دهید.</p>
+                <div id="sortable-questions">
+                {% for question in questions %}
+                <div class="question-item" id="question-{{ question.id }}" data-id="{{ question.id }}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <span class="drag-handle me-2" title="تغییر ترتیب"><i class="fas fa-grip-vertical text-muted"></i></span>
+                            <h5 class="mb-0 d-inline">{{ question.text }}</h5>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-primary edit-question" data-question-id="{{ question.id }}" data-question-text="{{ question.text }}" data-question-type="{{ question.question_type }}" data-question-required="{{ question.required|yesno:"true,false" }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger delete-question" data-question-id="{{ question.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <span class="badge bg-secondary me-2">{{ question.get_question_type_display }}</span>
+                        <span class="badge {% if question.required %}bg-danger{% else %}bg-secondary{% endif %}">
+                            {% if question.required %}ضروری{% else %}اختیاری{% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if question.question_type != 'text' and question.question_type != 'rating' %}
+                    <div class="choices-container">
+                        <h6 class="mb-2">گزینه‌ها:</h6>
+                        <div class="list-group mb-3">
+                            {% for choice in question.choices.all %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center choice-item" id="choice-{{ choice.id }}">
+                                <span>{{ choice.text }}</span>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary edit-choice" data-choice-id="{{ choice.id }}" data-choice-text="{{ choice.text }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger delete-choice" data-choice-id="{{ choice.id }}">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <form class="add-choice-form" method="post" action="{% url 'surveys:choice_create' question.id %}">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="text" name="text" class="form-control" placeholder="متن گزینه جدید" required>
+                                <button class="btn btn-outline-secondary" type="submit">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted">هیچ سوالی برای این نظرسنجی ایجاد نشده است. با استفاده از فرم سمت راست، سوالات خود را اضافه کنید.</p>
+                </div>
+                {% endif %}
+                
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">پیام تشکر پایان نظرسنجی</h5>
+                        <a href="{% url 'surveys:update_thank_you_message' survey.slug %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-pen me-1"></i>ویرایش پیام
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        {% if survey.custom_thank_you_message %}
+                        <div class="p-3 bg-light rounded">
+                            {{ survey.custom_thank_you_message|safe }}
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted p-4">
+                            <i class="fas fa-info-circle mb-2 fa-2x"></i>
+                            <p>پیام تشکر شخصی‌سازی شده‌ای تنظیم نشده است.</p>
+                            <a href="{% url 'surveys:update_thank_you_message' survey.slug %}" class="btn btn-outline-primary btn-sm mt-2">
+                                افزودن پیام تشکر
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editQuestionModal" tabindex="-1" aria-labelledby="editQuestionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editQuestionModalLabel">ویرایش سوال</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editQuestionForm" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" id="edit-question-id" name="question_id">
+                    <div class="mb-3">
+                        <label for="edit-question-text" class="form-label">متن سوال</label>
+                        <input type="text" class="form-control" id="edit-question-text" name="text" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-question-type" class="form-label">نوع سوال</label>
+                        <select class="form-select" id="edit-question-type" name="question_type">
+                            <option value="text">پاسخ متنی</option>
+                            <option value="single">تک انتخابی</option>
+                            <option value="multiple">چند انتخابی</option>
+                            <option value="rating">امتیازدهی</option>
+                        </select>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="edit-question-required" name="required">
+                        <label class="form-check-label" for="edit-question-required">
+                            پاسخ به این سوال الزامی است
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editChoiceModal" tabindex="-1" aria-labelledby="editChoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editChoiceModalLabel">ویرایش گزینه</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editChoiceForm" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" id="edit-choice-id" name="choice_id">
+                    <div class="mb-3">
+                        <label for="edit-choice-text" class="form-label">متن گزینه</label>
+                        <input type="text" class="form-control" id="edit-choice-text" name="text" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editThankYouModal" tabindex="-1" aria-labelledby="editThankYouModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editThankYouModalLabel">ویرایش پیام تشکر پایان نظرسنجی</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editThankYouForm" method="post" action="{% url 'surveys:update_thank_you_message' survey.slug %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="thank-you-message" class="form-label">پیام تشکر</label>
+                        <textarea id="thank-you-message" name="custom_thank_you_message" class="form-control" rows="6" placeholder="پیام تشکر خود را وارد کنید...">{{ survey.custom_thank_you_message|default:"" }}</textarea>
+                        <div class="form-text text-muted">
+                            این پیام پس از تکمیل نظرسنجی به شرکت‌کنندگان نمایش داده می‌شود.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sortableQuestions = document.getElementById('sortable-questions');
+    if (sortableQuestions) {
+        new Sortable(sortableQuestions, {
+            handle: '.drag-handle',
+            animation: 150,
+            ghostClass: 'bg-light',
+            onEnd: function(evt) {
+                const questionIds = Array.from(sortableQuestions.querySelectorAll('.question-item'))
+                    .map(item => item.dataset.id);
+                
+                fetch('{% url "surveys:update_question_order" survey.slug %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ question_ids: questionIds })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showToast('ترتیب سوالات با موفقیت ذخیره شد', 'success');
+                    } else {
+                        showToast('خطا در ذخیره ترتیب سوالات', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating question order:', error);
+                    showToast('خطا در ذخیره ترتیب سوالات', 'danger');
+                });
+            }
+        });
+    }
+
+    const editQuestionModal = new bootstrap.Modal(document.getElementById('editQuestionModal'));
+    const editQuestionBtns = document.querySelectorAll('.edit-question');
+    
+    editQuestionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const questionId = this.dataset.questionId;
+            const questionText = this.dataset.questionText;
+            const questionType = this.dataset.questionType;
+            const questionRequired = this.dataset.questionRequired === 'true';
+            
+            document.getElementById('edit-question-id').value = questionId;
+            document.getElementById('edit-question-text').value = questionText;
+            document.getElementById('edit-question-type').value = questionType;
+            document.getElementById('edit-question-required').checked = questionRequired;
+            
+            document.getElementById('editQuestionForm').action = `/surveys/questions/${questionId}/update/`;
+            
+            editQuestionModal.show();
+        });
+    });
+    
+    const deleteQuestionBtns = document.querySelectorAll('.delete-question');
+    
+    deleteQuestionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (confirm('آیا از حذف این سوال اطمینان دارید؟ این عمل قابل بازگشت نیست.')) {
+                const questionId = this.dataset.questionId;
+                
+                fetch(`/surveys/questions/${questionId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById(`question-${questionId}`).remove();
+                    } else {
+                        alert('خطا در حذف سوال. لطفاً مجدداً تلاش کنید.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+                });
+            }
+        });
+    });
+    
+    const editChoiceModal = new bootstrap.Modal(document.getElementById('editChoiceModal'));
+    const editChoiceBtns = document.querySelectorAll('.edit-choice');
+    
+    editChoiceBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const choiceId = this.dataset.choiceId;
+            const choiceText = this.dataset.choiceText;
+            
+            document.getElementById('edit-choice-id').value = choiceId;
+            document.getElementById('edit-choice-text').value = choiceText;
+            document.getElementById('editChoiceForm').action = `/surveys/choices/${choiceId}/update/`;
+            editChoiceModal.show();
+        });
+    });
+    
+    const deleteChoiceBtns = document.querySelectorAll('.delete-choice');
+    
+    deleteChoiceBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (confirm('آیا از حذف این گزینه اطمینان دارید؟ این عمل قابل بازگشت نیست.')) {
+                const choiceId = this.dataset.choiceId;
+                
+                fetch(`/surveys/choices/${choiceId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById(`choice-${choiceId}`).remove();
+                    } else {
+                        alert('خطا در حذف گزینه. لطفاً مجدداً تلاش کنید.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+                });
+            }
+        });
+    });
+    
+    const addChoiceForms = document.querySelectorAll('.add-choice-form');
+    
+    addChoiceForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.id) {
+                    const choicesContainer = this.previousElementSibling;
+                    const newChoice = document.createElement('div');
+                    newChoice.className = 'list-group-item d-flex justify-content-between align-items-center choice-item';
+                    newChoice.id = `choice-${data.id}`;
+                    newChoice.innerHTML = `
+                        <span>${data.text}</span>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary edit-choice" data-choice-id="${data.id}" data-choice-text="${data.text}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger delete-choice" data-choice-id="${data.id}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    choicesContainer.appendChild(newChoice);
+                    
+                    this.querySelector('input[name=text]').value = '';
+                    
+                    const newEditBtn = newChoice.querySelector('.edit-choice');
+                    const newDeleteBtn = newChoice.querySelector('.delete-choice');
+                    
+                    newEditBtn.addEventListener('click', function() {
+                        const choiceId = this.dataset.choiceId;
+                        const choiceText = this.dataset.choiceText;
+                        
+                        document.getElementById('edit-choice-id').value = choiceId;
+                        document.getElementById('edit-choice-text').value = choiceText;
+                        
+                        document.getElementById('editChoiceForm').action = `/surveys/choices/${choiceId}/update/`;
+                        
+                        editChoiceModal.show();
+                    });
+                    
+                    newDeleteBtn.addEventListener('click', function() {
+                        if (confirm('آیا از حذف این گزینه اطمینان دارید؟ این عمل قابل بازگشت نیست.')) {
+                            const choiceId = this.dataset.choiceId;
+                            
+                            fetch(`/surveys/choices/${choiceId}/delete/`, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    document.getElementById(`choice-${choiceId}`).remove();
+                                } else {
+                                    alert('خطا در حذف گزینه. لطفاً مجدداً تلاش کنید.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+                            });
+                        }
+                    });
+                } else if (data.errors) {
+                    alert('خطا در افزودن گزینه: ' + JSON.stringify(data.errors));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+            });
+        });
+    });
+    
+    const questionForm = document.getElementById('questionForm');
+    
+    questionForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.id) {
+                const questionsContainer = document.getElementById('questions-container');
+                
+                if (questionsContainer.querySelector('.text-muted')) {
+                    questionsContainer.innerHTML = '';
+                }
+                
+                const newQuestion = document.createElement('div');
+                newQuestion.className = 'question-item';
+                newQuestion.id = `question-${data.id}`;
+                
+                let choicesHtml = '';
+                if (formData.get('question_type') !== 'text' && formData.get('question_type') !== 'rating') {
+                    choicesHtml = `
+                    <div class="choices-container">
+                        <h6 class="mb-2">گزینه‌ها:</h6>
+                        <div class="list-group mb-3">
+                            <!-- گزینه‌های پیش‌فرض اضافه خواهند شد -->
+                        </div>
+                        
+                        <form class="add-choice-form" method="post" action="/surveys/questions/${data.id}/choices/add/">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="text" name="text" class="form-control" placeholder="متن گزینه جدید" required>
+                                <button class="btn btn-outline-secondary" type="submit">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    `;
+                }
+                
+                newQuestion.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">${data.text}</h5>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-primary edit-question" data-question-id="${data.id}" data-question-text="${data.text}" data-question-type="${formData.get('question_type')}" data-question-required="${formData.get('required') ? 'true' : 'false'}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger delete-question" data-question-id="${data.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <span class="badge bg-secondary me-2">${data.type}</span>
+                        <span class="badge ${formData.get('required') ? 'bg-danger' : 'bg-secondary'}">
+                            ${formData.get('required') ? 'ضروری' : 'اختیاری'}
+                        </span>
+                    </div>
+                    ${choicesHtml}
+                `;
+                
+                questionsContainer.prepend(newQuestion);
+                
+                this.reset();
+                
+                const newEditBtn = newQuestion.querySelector('.edit-question');
+                const newDeleteBtn = newQuestion.querySelector('.delete-question');
+                
+                newEditBtn.addEventListener('click', function() {
+                    const questionId = this.dataset.questionId;
+                    const questionText = this.dataset.questionText;
+                    const questionType = this.dataset.questionType;
+                    const questionRequired = this.dataset.questionRequired === 'true';
+                    
+                    document.getElementById('edit-question-id').value = questionId;
+                    document.getElementById('edit-question-text').value = questionText;
+                    document.getElementById('edit-question-type').value = questionType;
+                    document.getElementById('edit-question-required').checked = questionRequired;
+                    
+                    document.getElementById('editQuestionForm').action = `/surveys/questions/${questionId}/update/`;
+                    
+                    editQuestionModal.show();
+                });
+                
+                newDeleteBtn.addEventListener('click', function() {
+                    if (confirm('آیا از حذف این سوال اطمینان دارید؟ این عمل قابل بازگشت نیست.')) {
+                        const questionId = this.dataset.questionId;
+                        
+                        fetch(`/surveys/questions/${questionId}/delete/`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                document.getElementById(`question-${questionId}`).remove();
+                                
+                                if (questionsContainer.children.length === 0) {
+                                    questionsContainer.innerHTML = `
+                                        <div class="text-center py-4">
+                                            <p class="text-muted">هیچ سوالی برای این نظرسنجی ایجاد نشده است. با استفاده از فرم سمت راست، سوالات خود را اضافه کنید.</p>
+                                        </div>
+                                    `;
+                                }
+                            } else {
+                                alert('خطا در حذف سوال. لطفاً مجدداً تلاش کنید.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+                        });
+                    }
+                });
+                
+                if (formData.get('question_type') !== 'text' && formData.get('question_type') !== 'rating') {
+                    const newAddChoiceForm = newQuestion.querySelector('.add-choice-form');
+                    
+                    newAddChoiceForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        
+                        const formData = new FormData(this);
+                        
+                        fetch(this.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.id) {
+                                const choicesContainer = this.previousElementSibling;
+                                const newChoice = document.createElement('div');
+                                newChoice.className = 'list-group-item d-flex justify-content-between align-items-center choice-item';
+                                newChoice.id = `choice-${data.id}`;
+                                newChoice.innerHTML = `
+                                    <span>${data.text}</span>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary edit-choice" data-choice-id="${data.id}" data-choice-text="${data.text}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-choice" data-choice-id="${data.id}">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                `;
+                                choicesContainer.appendChild(newChoice);
+                                
+                                this.querySelector('input[name=text]').value = '';
+                                
+                                const newEditBtn = newChoice.querySelector('.edit-choice');
+                                const newDeleteBtn = newChoice.querySelector('.delete-choice');
+                                
+                                newEditBtn.addEventListener('click', function() {
+                                    const choiceId = this.dataset.choiceId;
+                                    const choiceText = this.dataset.choiceText;
+                                    
+                                    document.getElementById('edit-choice-id').value = choiceId;
+                                    document.getElementById('edit-choice-text').value = choiceText;
+                                    
+                                    document.getElementById('editChoiceForm').action = `/surveys/choices/${choiceId}/update/`;
+                                    
+                                    editChoiceModal.show();
+                                });
+                                
+                                newDeleteBtn.addEventListener('click', function() {
+                                    if (confirm('آیا از حذف این گزینه اطمینان دارید؟ این عمل قابل بازگشت نیست.')) {
+                                        const choiceId = this.dataset.choiceId;
+                                        
+                                        fetch(`/surveys/choices/${choiceId}/delete/`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                                                'X-Requested-With': 'XMLHttpRequest'
+                                            }
+                                        })
+                                        .then(response => {
+                                            if (response.ok) {
+                                                document.getElementById(`choice-${choiceId}`).remove();
+                                            } else {
+                                                alert('خطا در حذف گزینه. لطفاً مجدداً تلاش کنید.');
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error:', error);
+                                            alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+                                        });
+                                    }
+                                });
+                            } else if (data.errors) {
+                                alert('خطا در افزودن گزینه: ' + JSON.stringify(data.errors));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+                        });
+                    });
+                }
+            } else if (data.errors) {
+                alert('خطا در افزودن سوال: ' + JSON.stringify(data.errors));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('خطا در ارتباط با سرور. لطفاً مجدداً تلاش کنید.');
+        });
+    });
+});
+</script>
+{% endblock %} 
