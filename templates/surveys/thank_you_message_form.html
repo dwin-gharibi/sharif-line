@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}ویرایش پیام تشکر | {{ survey.title }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .note-editor .note-editing-area {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    .note-editor .note-toolbar {
+        direction: ltr;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-bottom: 1px solid rgba(0,0,0,.125);
+    }
+    .preview-content {
+        min-height: 150px;
+        background-color: #fff;
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'surveys:survey_list' %}">نظرسنجی‌ها</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'surveys:survey_detail' survey.slug %}">{{ survey.title }}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'surveys:survey_edit' survey.slug %}">ویرایش</a></li>
+                    <li class="breadcrumb-item active">ویرایش پیام تشکر</li>
+                </ol>
+            </nav>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">ویرایش پیام تشکر نظرسنجی</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        این پیام پس از تکمیل نظرسنجی به پاسخ‌دهندگان نمایش داده می‌شود. 
+                        می‌توانید از قالب‌بندی‌های متنی، تصاویر و لینک‌ها استفاده کنید.
+                    </p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.media }}
+                        {{ form.as_p }}
+                        
+                        <div class="d-flex justify-content-end mt-4">
+                            <a href="{% url 'surveys:survey_edit' survey.slug %}" class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-times me-1"></i>انصراف
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>ذخیره پیام
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">پیش‌نمایش زنده</h5>
+        
+                </div>
+                <div class="card-body">
+                    <div id="live-preview" class="p-3 border rounded preview-content">
+                        {% if survey.custom_thank_you_message %}
+                        {{ survey.custom_thank_you_message|safe }}
+                        {% else %}
+                        <div class="text-center text-muted p-4">
+                            <i class="fas fa-info-circle mb-2 fa-2x"></i>
+                            <p>پیش‌نمایش متن شما اینجا نمایش داده خواهد شد...</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const textArea = document.querySelector('textarea[name="custom_thank_you_message"]');
+    const livePreview = document.getElementById('live-preview');
+    
+    $('#id_custom_thank_you_message').summernote({
+        height: 300,
+        toolbar: [
+            ['style', ['style', 'bold', 'italic', 'underline', 'clear']],
+            ['font', ['strikethrough', 'superscript', 'subscript']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['table', ['table']],
+            ['insert', ['link', 'picture', 'video']],
+            ['view', ['fullscreen', 'codeview', 'help']]
+        ],
+        callbacks: {
+            onChange: function(contents, $editable) {
+                updatePreview(contents);
+            }
+        }
+    });
+    
+    function updatePreview(content) {
+        if (content && content.trim() !== '') {
+            livePreview.innerHTML = content;
+            livePreview.classList.add('has-content');
+        } else {
+            livePreview.innerHTML = `<div class="text-center text-muted p-4">
+                <i class="fas fa-info-circle mb-2 fa-2x"></i>
+                <p>پیش‌نمایش متن شما اینجا نمایش داده خواهد شد...</p>
+            </div>`;
+            livePreview.classList.remove('has-content');
+        }
+    }
+    
+    setTimeout(function() {
+        const initialContent = $('#id_custom_thank_you_message').summernote('code');
+        updatePreview(initialContent);
+    }, 500);
+});
+</script>
+{% endblock %} 
