@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ survey.title }} | سامانه نظرسنجی{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-light">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">{{ survey.title }}</h2>
+            <span class="badge {% if survey.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                {% if survey.is_active %}فعال{% else %}غیرفعال{% endif %}
+            </span>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if survey.description %}
+        <p class="lead">{{ survey.description }}</p>
+        <hr>
+        {% endif %}
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5><i class="fas fa-info-circle me-2 text-primary"></i>اطلاعات نظرسنجی</h5>
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        تاریخ ایجاد
+                        <span>{{ survey.created_at|date:"Y/m/d H:i" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        آخرین بروزرسانی
+                        <span>{{ survey.updated_at|date:"Y/m/d H:i" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        تعداد سوالات
+                        <span class="badge bg-primary rounded-pill">{{ questions.count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        تعداد پاسخ‌ها
+                        <span class="badge bg-info rounded-pill">{{ response_count }}</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5><i class="fas fa-link me-2 text-primary"></i>لینک اشتراک‌گذاری</h5>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="shareUrl" value="{{ request.scheme }}://{{ request.get_host }}{{ survey.get_share_url }}" readonly>
+                    <button class="btn btn-outline-primary" type="button" onclick="copyToClipboard()">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ survey.get_share_url }}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt me-2"></i>مشاهده نظرسنجی
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="mb-3"><i class="fas fa-question-circle me-2 text-primary"></i>سوالات نظرسنجی</h5>
+        {% if questions %}
+        <div class="list-group mb-4">
+            {% for question in questions %}
+            <div class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">{{ question.text }}</h6>
+                    <small class="text-muted">{{ question.get_question_type_display }}</small>
+                </div>
+                {% if question.question_type != 'text' %}
+                <ul class="mt-2 mb-1">
+                    {% for choice in question.choices.all %}
+                    <li>{{ choice.text }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                <small>
+                    {% if question.required %}
+                    <span class="badge bg-danger">ضروری</span>
+                    {% else %}
+                    <span class="badge bg-secondary">اختیاری</span>
+                    {% endif %}
+                </small>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            هیچ سوالی برای این نظرسنجی تعریف نشده است. برای افزودن سوال از دکمه ویرایش استفاده کنید.
+        </div>
+        {% endif %}
+    </div>
+    <div class="card-footer">
+        <div class="d-flex justify-content-between">
+            <div>
+                <a href="{% url 'surveys:survey_edit' survey.slug %}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>ویرایش نظرسنجی
+                </a>
+                <a href="{% url 'surveys:survey_responses' survey.slug %}" class="btn btn-info ms-2">
+                    <i class="fas fa-chart-bar me-2"></i>مشاهده نتایج
+                </a>
+            </div>
+            <a href="{% url 'surveys:survey_delete' survey.slug %}" class="btn btn-danger">
+                <i class="fas fa-trash-alt me-2"></i>حذف نظرسنجی
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToClipboard() {
+    const shareUrl = document.getElementById("shareUrl");
+    shareUrl.select();
+    document.execCommand("copy");
+    
+    const btn = shareUrl.nextElementSibling;
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i>';
+    btn.classList.remove('btn-outline-primary');
+    btn.classList.add('btn-success');
+    
+    setTimeout(() => {
+        btn.innerHTML = originalHtml;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-primary');
+    }, 1500);
+}
+</script>
+{% endblock %} 
