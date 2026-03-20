@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load survey_tags %}
+
+{% block title %}{{ survey.title }} | سامانه نظرسنجی{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* استایل‌های بهبود یافته برای صفحه پاسخگویی */
+    .question-card {
+        border-right: 4px solid #0d6efd;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+    }
+    .question-card:hover {
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+        transform: translateY(-2px);
+    }
+    .required-mark {
+        color: #dc3545;
+        margin-right: 5px;
+    }
+    /* پس‌زمینه سر سفحه */
+    .survey-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        padding: 2rem;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+    }
+    /* استایل دکمه ثبت */
+    .submit-btn {
+        transition: all 0.3s ease;
+    }
+    .submit-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+    }
+    
+    /* بهبود استایل‌های گزینه‌ها */
+    .form-check {
+        margin-bottom: 10px;
+        display: block;
+        width: 100%;
+    }
+    .form-check-input {
+        margin-left: 8px;
+    }
+    .form-check-label {
+        display: inline-block;
+        margin-right: 5px;
+    }
+    
+    /* بهبود نمایش امتیازدهی */
+    .rating-group {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 15px;
+        margin: 15px 0;
+        padding: 10px 0;
+    }
+    .rating-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .rating-value {
+        font-weight: bold;
+        font-size: 18px;
+        margin-top: 5px;
+    }
+    .rating-option .form-check-input {
+        margin: 0 auto 5px auto;
+        transform: scale(1.5);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="survey-header text-center">
+    <h2 class="display-5 fw-bold mb-3">{{ survey.title }}</h2>
+    {% if survey.description %}
+    <p class="lead">{{ survey.description }}</p>
+    {% endif %}
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                {% for question in questions %}
+                    {% with form=forms|get_item:forloop.counter0 %}
+                    <div class="card question-card mb-4">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-3">
+                                {{ forloop.counter }}. {{ question.text }}
+                                {% if question.required %}
+                                <span class="required-mark">*</span>
+                                {% endif %}
+                            </h5>
+                            
+                            {% if question.question_type == 'text' %}
+                            <div class="form-group">
+                                {{ form.text_answer }}
+                            </div>
+                            
+                            {% elif question.question_type == 'single' %}
+                            <div class="form-group">
+                                <div class="radio-options">
+                                    {% for radio in form.choice %}
+                                    <div class="form-check">
+                                        {{ radio.tag }}
+                                        <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                            {{ radio.choice_label }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            {% elif question.question_type == 'multiple' %}
+                            <div class="form-group">
+                                <div class="checkbox-options">
+                                    {% for checkbox in form.choices %}
+                                    <div class="form-check">
+                                        {{ checkbox.tag }}
+                                        <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                                            {{ checkbox.choice_label }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            {% elif question.question_type == 'rating' %}
+                            <div class="rating-group">
+                                {% for radio in form.rating %}
+                                <div class="rating-option">
+                                    {{ radio.tag }}
+                                    <span class="rating-value">{{ radio.choice_label }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endwith %}
+                {% endfor %}
+                
+                <div class="d-grid gap-2 mt-4 mb-5">
+                    <button type="submit" class="btn btn-primary btn-lg submit-btn py-3">
+                        <i class="fas fa-paper-plane me-2"></i>ثبت پاسخ‌ها
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var _zip = function(arrays) {
+        return Array.apply(null, Array(arrays[0].length)).map(function(_, i) {
+            return arrays.map(function(array) { return array[i]; });
+        });
+    };
+    {{ questions_data|json_script:"questions-data" }}
+    {{ forms_data|json_script:"forms-data" }}
+</script>
+{% endblock %}
