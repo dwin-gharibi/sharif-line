@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}صفحه اصلی | شریف لاین {% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row align-items-center text-center text-lg-start" data-aos="fade-up">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold mb-4 text-primary">شریف‌لاین، نظرسنجی به راحتی آب خوردن!</h1>
+            <p class="lead mb-4 text-muted">با استفاده از سامانه نظرسنجی، به راحتی می‌توانید نظرسنجی‌های حرفه‌ای ایجاد کنید، به اشتراک بگذارید و نتایج را تحلیل کنید.</p>
+            <div class="my-4">
+                <h5 class="mb-3"><i class="fas fa-check-circle text-success me-2"></i>ویژگی‌های سامانه:</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-angle-left text-primary me-2"></i>ایجاد انواع سوالات (متنی، چندگزینه‌ای و...)</li>
+                    <li class="mb-2"><i class="fas fa-angle-left text-primary me-2"></i>اشتراک‌گذاری آسان نظرسنجی با لینک اختصاصی</li>
+                    <li class="mb-2"><i class="fas fa-angle-left text-primary me-2"></i>مشاهده و تحلیل پاسخ‌ها به صورت نمودار و جدول</li>
+                    <li class="mb-2"><i class="fas fa-angle-left text-primary me-2"></i>مدیریت آسان نظرسنجی‌ها</li>
+                </ul>
+            </div>
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'surveys:survey_create' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus-circle me-2"></i>ایجاد نظرسنجی جدید
+                </a>
+            {% else %}
+                <div class="d-flex gap-3">
+                    <a href="{% url 'signup' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>ثبت‌نام
+                    </a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>ورود
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-lg-6 text-center" data-aos="fade-left">
+            {% load static %}
+            <img src="{% static 'img/hero.png' %}" alt="نظرسنجی آنلاین" class="img-fluid" style="max-width: 80%;">
+        </div>
+    </div>
+
+    <div class="row mt-5 py-5 bg-light rounded" data-aos="fade-up">
+        <div class="col-md-4 text-center mb-4 mb-md-0">
+            <div class="p-4">
+                <i class="fas fa-edit fa-3x text-primary mb-4"></i>
+                <h3>ایجاد</h3>
+                <p>نظرسنجی‌های خود را با انواع سوالات متنوع ایجاد کنید</p>
+            </div>
+        </div>
+        <div class="col-md-4 text-center mb-4 mb-md-0">
+            <div class="p-4">
+                <i class="fas fa-share-alt fa-3x text-primary mb-4"></i>
+                <h3>اشتراک‌گذاری</h3>
+                <p>با لینک اختصاصی، نظرسنجی خود را به اشتراک بگذارید</p>
+            </div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="p-4">
+                <i class="fas fa-chart-pie fa-3x text-primary mb-4"></i>
+                <h3>تحلیل</h3>
+                <p>نتایج و پاسخ‌ها را به صورت نمودار و جدول مشاهده کنید</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
